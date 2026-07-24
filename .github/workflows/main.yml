@@ -26,3 +26,21 @@ jobs:
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/first-pipeline:v${{ github.run_number }}
             ${{ secrets.DOCKER_USERNAME }}/first-pipeline:latest
+  CD:
+    runs-on: ubuntu-latest
+    needs: [CI]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.1.5
+      - name: Kubernetes Context Setup
+        uses: azure/k8s-set-context@v4
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+      - name: Manifest Deployment
+        uses: Azure/k8s-deploy@v4
+        with:
+          manifests: |
+            ./k8s/deployment.yaml
+          images: |
+            ${{ secrets.DOCKER_USERNAME }}/first-pipeline:v${{ github.run_number }}
